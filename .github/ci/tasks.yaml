@@ -1,0 +1,175 @@
+# tasks.yaml — BOF-Collection FS-BOF test suite
+# Consumed by adaptix-testing -c config.yaml -t tasks.yaml.
+# Fixture setup (creating C:\Temp\fsbof-test\ on the Windows target) happens in the CI workflow preamble.
+
+tasks:
+
+  # ── TYPE ──
+
+  # type-happy-path
+  - cmdline: "type C:\\Temp\\fsbof-test\\hello.txt"
+    expected: "Hello from fsbof-test"
+
+  # type-missing-file
+  - cmdline: "type C:\\Temp\\fsbof-test\\nonexistent.txt"
+    expected: "The system cannot find the file specified."
+
+  # type-permission-denied
+  - cmdline: "type C:\\Windows\\System32\\fsbof-test-file.txt"
+    expected: "The system cannot find the file specified."
+
+  # type-unc-path
+  - cmdline: "type \\\\localhost\\C$\\Temp\\fsbof-test\\hello.txt"
+    expected: "Hello from fsbof-test"
+
+  # ── MKDIR ──
+
+  # mkdir-happy-path
+  - cmdline: "mkdir C:\\Temp\\fsbof-test\\newdir"
+
+  # mkdir-already-exists
+  - cmdline: "mkdir C:\\Temp\\fsbof-test\\newdir"
+    expected: "A subdirectory or file C:\\Temp\\fsbof-test\\newdir already exists."
+
+  # mkdir-missing-parent
+  - cmdline: "mkdir C:\\Temp\\fsbof-test\\a\\b\\c"
+
+  # mkdir-path-too-long
+  - cmdline: "mkdir C:\\Temp\\fsbof-test\\aaaaaaaaaaaaaaaaaaaa\\aaaaaaaaaaaaaaaaaaaa\\aaaaaaaaaaaaaaaaaaaa\\aaaaaaaaaaaaaaaaaaaa\\aaaaaaaaaaaaaaaaaaaa\\aaaaaaaaaaaaaaaaaaaa\\aaaaaaaaaaaaaaaaaaaa\\aaaaaaaaaaaaaaaaaaaa\\aaaaaaaaaaaaaaaaaaaa\\aaaaaaaaaaaaaaaaaaaa\\aaaaaaaaaaaaaaaaaaaa\\aaaaaaaaaaaaaaaaaaaa\\aaaaaaaaaaaaaaaaaaaa\\aaaaaaaaaaaaaaaaaaaa\\aaaaaaaaaaaaaaaaaaaa\\aaaaaaaaaaaaaaaaaaaa\\aaaaaaaaaaaaaaaaaaaa\\aaaaaaaaaaaaaaaaaaaa\\aaaaaaaaaaaaaaaaaaaa\\aaaaaaaaaaaaaaaaaaaa\\aaaaaaaaaaaaaaaaaaaa\\aaaaaaaaaaaaaaaaaaaa\\aaaaaaaaaaaaaaaaaaaa\\aaaaaaaaaaaaaaaaaaaa"
+    expected: "The directory or file cannot be created."
+
+  # ── RMDIR ──
+
+  # rmdir-happy-path
+  - cmdline: "rmdir C:\\Temp\\fsbof-test\\emptydir"
+
+  # rmdir-missing-dir
+  - cmdline: "rmdir C:\\Temp\\fsbof-test\\nonexistent"
+    expected: "The system cannot find the file specified."
+
+  # rmdir-not-empty
+  - cmdline: "rmdir C:\\Temp\\fsbof-test\\rmdir-nonempty-target"
+    expected: "The directory is not empty."
+
+  # rmdir-permission-denied
+  - cmdline: "rmdir C:\\Windows\\System32"
+    expected: "The process cannot access the file because it is being used by another process."
+
+  # rmdir-unc-path
+  - cmdline: "rmdir \\\\localhost\\C$\\Temp\\fsbof-test\\rmdir-unc-target"
+
+  # ── COPY ──
+
+  # copy-happy-path
+  - cmdline: "copy C:\\Temp\\fsbof-test\\hello.txt C:\\Temp\\fsbof-test\\dest\\"
+    expected: "        1 file(s) copied."
+
+  # copy-missing-source
+  - cmdline: "copy C:\\Temp\\fsbof-test\\nonexistent.txt C:\\Temp\\fsbof-test\\dest\\"
+    expected: "The system cannot find the file specified."
+
+  # copy-permission-denied
+  - cmdline: "copy C:\\Windows\\System32\\kernel32.dll C:\\Temp\\fsbof-test\\dest\\"
+    expected: "        1 file(s) copied."
+
+  # copy-wildcard-match
+  - cmdline: "copy C:\\Temp\\fsbof-test\\*.log C:\\Temp\\fsbof-test\\dest\\"
+    expected: |
+      C:\Temp\fsbof-test\file1.log
+      C:\Temp\fsbof-test\file2.log
+              2 file(s) copied.
+
+  # copy-wildcard-no-match
+  - cmdline: "copy C:\\Temp\\fsbof-test\\*.xyz C:\\Temp\\fsbof-test\\dest\\"
+    expected: |
+      C:\Temp\fsbof-test\*.xyz 
+      The system cannot find the file specified.
+              0 file(s) copied.
+
+  # copy-unc-source
+  - cmdline: "copy \\\\localhost\\C$\\Temp\\fsbof-test\\hello.txt C:\\Temp\\fsbof-test\\dest\\"
+    expected: "        1 file(s) copied."
+
+  # copy-unc-dest
+  - cmdline: "copy C:\\Temp\\fsbof-test\\hello.txt \\\\localhost\\C$\\Temp\\fsbof-test\\dest\\"
+    expected: "        1 file(s) copied."
+
+  # ── MOVE ──
+
+  # move-happy-path
+  - cmdline: "move C:\\Temp\\fsbof-test\\source.txt C:\\Temp\\fsbof-test\\moved\\source.txt"
+    expected: "        1 file(s) moved."
+
+  # move-missing-source
+  - cmdline: "move C:\\Temp\\fsbof-test\\nonexistent.txt C:\\Temp\\fsbof-test\\moved\\"
+    expected: "The system cannot find the file specified."
+
+  # move-wildcard-match
+  - cmdline: "move C:\\Temp\\fsbof-test\\*.log C:\\Temp\\fsbof-test\\moved\\"
+    expected: |
+      C:\Temp\fsbof-test\file1.log
+      C:\Temp\fsbof-test\file2.log
+              2 file(s) moved.
+
+  # move-wildcard-no-match
+  - cmdline: "move C:\\Temp\\fsbof-test\\*.xyz C:\\Temp\\fsbof-test\\moved\\"
+    expected: |
+      A duplicate file name exists, or the file
+      cannot be found.
+
+  # move-unc-source
+  - cmdline: "move \\\\localhost\\C$\\Temp\\fsbof-test\\hello.txt C:\\Temp\\fsbof-test\\moved\\"
+    expected: "        1 file(s) moved."
+
+  # ── DEL ──
+
+  # del-happy-path
+  - cmdline: "del C:\\Temp\\fsbof-test\\del-target.txt"
+
+  # del-missing-file
+  - cmdline: "del C:\\Temp\\fsbof-test\\nonexistent.txt"
+    expected: "Could Not Find C:\\Temp\\fsbof-test\\nonexistent.txt"
+
+  # del-permission-denied
+  - cmdline: "del C:\\Windows\\System32\\fsbof-test-file.txt"
+    expected: "Could Not Find C:\\Windows\\System32\\fsbof-test-file.txt"
+
+  # del-wildcard-match
+  - cmdline: "del C:\\Temp\\fsbof-test\\del*.tmp"
+
+  # del-wildcard-no-match
+  - cmdline: "del C:\\Temp\\fsbof-test\\*.xyz"
+    expected: "Could Not Find C:\\Temp\\fsbof-test\\*.xyz"
+
+  # del-unc-path
+  - cmdline: "del \\\\localhost\\C$\\Temp\\fsbof-test\\del-unc-target.txt"
+
+  # del-directory-target
+  - cmdline: "del C:\\Temp\\fsbof-test\\dest"
+
+  # ── CD ──
+
+  # cd-happy-path
+  - cmdline: "cd C:\\Temp\\fsbof-test"
+
+  # cd-missing-dir
+  - cmdline: "cd C:\\Temp\\fsbof-test\\nonexistent"
+    expected: "The system cannot find the file specified."
+
+  # cd-relative-parent-step1
+  - cmdline: "cd C:\\Temp\\fsbof-test"
+
+  # cd-relative-parent-step2
+  - cmdline: "cd .."
+
+  # cd-unc-path
+  - cmdline: "cd \\\\localhost\\C$\\Temp\\fsbof-test"
+
+  # ── PWD ──
+
+  # pwd-happy-path-step1
+  - cmdline: "cd C:\\Temp\\fsbof-test"
+
+  # pwd-happy-path-step2
+  - cmdline: "pwd"
+    expected: "C:\\Temp\\fsbof-test"
